@@ -1,0 +1,41 @@
+---
+title: "Clustering Weather data of Texas State 2006-2010"
+author: "Crupanshu Ashishbhai Udani, Karan Jeeten Thakkar"
+date: 08/10/20
+output: html_document
+---
+
+```{r setup,include = FALSE}
+knitr::opts_chunk$set(echo=TRUE,warning = FALSE,message=FALSE)
+```
+# Importing libraries
+```{r}
+library(dplyr)
+library(readr)
+library(caret)
+```
+
+```{bash, engine.opts="-l"}
+#awk { gsub(","," ");print>>"hourly_2010.g"} hourly_2010_mod.g
+```
+
+# 1 Importing Data and merging into single data frame
+```{r Import Data and merging}
+columns_names <- c("STN","WBAN","YEARMODA_HR","TEMP","DEWP","DEWP.Count",  "SLP","SLP.Count"  , "STP","STP.Count", "VISIB","VISIB.Count","WDSP","WDSP.Count", "MXSPD",  "GUST", "PRCP"  ,"SNDP" , "FRSHTT")
+fileNames <- c("./data/datasets_all/hourly_2006.g","./data/datasets_all/hourly_2007.g","./data/datasets_all/hourly_2008.g","./data/datasets_all/hourly_2009.g","./data/datasets_all/hourly_2010_mod.g")
+i<-1
+fileDataList<-list()
+stations_all<-matrix(data=NA,ncol=19)
+colnames(stations_all)<-columns_names
+for (file in fileNames){
+  fileData <- read_delim(file,"  ",skip = 1,col_names = columns_names,na =c("", "NA","999.9","9999.9"),col_types ="cicddidididididdcdc-",trim_ws = TRUE) %>% as.data.frame()
+  print(dim(fileData))
+  if(i==1)
+    stations_all <- fileData
+  else
+    stations_all <- bind_rows(stations_all,fileData)
+  i <- i + 1
+}
+#stations_all <- bind_cols(fileDataList[1],fileDataList[2],fileDataList[3],fileDataList[4],fileDataList[5])
+print(dim(stations_all))
+```
