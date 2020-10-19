@@ -46,6 +46,7 @@ print(dim(stations_all))
 stations_all <- subset(stations_all, select = -c(SNDP))
 # Replace absurdly high values (>150) of TEMP with NA
 stations_all$TEMP[stations_all$TEMP > 150] <- NA
-# Replace NA values in TEMP with median
-stations_all$TEMP[is.na(stations_all$TEMP)] <- median(stations_all$TEMP, na.rm=TRUE)
+# Replace NA values in TEMP with median, grouping rows by station name
+impute.median <- function(x) replace(x, is.na(x), median(x, na.rm = TRUE))
+stations_all %>% group_by(STN) %>% mutate(TEMP = impute.median(TEMP))
 ```
