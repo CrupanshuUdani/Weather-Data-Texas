@@ -22,7 +22,7 @@ library(caret)
 # 1 Importing Data and merging into single data frame
 ```{r Import Data and merging}
 columns_names <- c("STN","WBAN","YEARMODA_HR","TEMP","DEWP","DEWP.Count",  "SLP","SLP.Count"  , "STP","STP.Count", "VISIB","VISIB.Count","WDSP","WDSP.Count", "MXSPD",  "GUST", "PRCP"  ,"SNDP" , "FRSHTT")
-fileNames <- c("./data/datasets_all/hourly_2006.g","./data/datasets_all/hourly_2007.g","./data/datasets_all/hourly_2008.g","./data/datasets_all/hourly_2009.g","./data/datasets_all/hourly_2010_mod.g")
+fileNames <- c("../data/datasets_all/hourly_2006.g","../data/datasets_all/hourly_2007.g","../data/datasets_all/hourly_2008.g","../data/datasets_all/hourly_2009.g","../data/datasets_all/hourly_2010_mod.g")
 i<-1
 fileDataList<-list()
 stations_all<-matrix(data=NA,ncol=19)
@@ -38,4 +38,14 @@ for (file in fileNames){
 }
 #stations_all <- bind_cols(fileDataList[1],fileDataList[2],fileDataList[3],fileDataList[4],fileDataList[5])
 print(dim(stations_all))
+```
+
+# 2 Preprocessing
+```{r Preprocessing the data}
+# Drop SNDP as maximum values are NA
+stations_all <- subset(stations_all, select = -c(SNDP))
+# Replace absurdly high values (>150) of TEMP with NA
+stations_all$TEMP[stations_all$TEMP > 150] <- NA
+# Replace NA values in TEMP with median
+stations_all$TEMP[is.na(stations_all$TEMP)] <- median(stations_all$TEMP, na.rm=TRUE)
 ```
