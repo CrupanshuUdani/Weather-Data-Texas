@@ -23,6 +23,8 @@ library(stringr) # Used for String manipulation for feature extractions
 
 # 1 Importing Data and merging into single data frame
 ```{r Import Data and merging}
+stations_location = read_csv("../data/stations.csv")
+
 columns_names <- c("STN","WBAN","YEARMODA_HR","TEMP","DEWP","DEWP.Count",  "SLP","SLP.Count"  , "STP","STP.Count", "VISIB","VISIB.Count","WDSP","WDSP.Count", "MXSPD",  "GUST", "PRCP"  ,"SNDP" , "FRSHTT")
 fileNames_all <- c("./data/datasets_all/hourly_2006.g","./data/datasets_all/hourly_2007.g","./data/datasets_all/hourly_2008.g","./data/datasets_all/hourly_2009.g","./data/datasets_all/hourly_2010_mod.g")
 fileNames_789 <- c("../data/datasets_all/hourly_2007.g","../data/datasets_all/hourly_2008.g","../data/datasets_all/hourly_2009.g")
@@ -43,7 +45,8 @@ head(stations_all)
 
 # 2 Filtering out data based on data month and year
 ```{r}
-stations_all %>% filter(month(ymd_h(YEARMODA_HR))==11 & year(ymd_h(YEARMODA_HR))>2006 & year(ymd_h(YEARMODA_HR))<2010 ) -> stations_789_nov
+stations_all %>% mutate(YEAR = year(ymd_h(YEARMODA_HR)),MONTH= month(ymd_h(YEARMODA_HR)),MONTH_DAY=day(ymd_h(YEARMODA_HR)),HOUR=hour(ymd_h(YEARMODA_HR))) ->stations_all
+stations_all %>% filter(MONTH==11 & YEAR>2006 & YEAR<2010 ) -> stations_789_nov
 summary(stations_789_nov)
 #optional (for mem optimization)
 rm(stations_all)
@@ -59,9 +62,8 @@ gc()
 
 ```{r TEMP}
 #count(filter("TEMP" > 900))
-barplot(stations_789_nov$TEMP)
 boxplot(stations_789_nov$TEMP,horizontal = TRUE)
-quantile(stations_789_nov$TEMP)
+#quantile(stations_789_nov$TEMP,na.rm = TRUE)
 dens_TEMP<-density(stations_789_nov$TEMP)
 plot(dens_TEMP)
 # Plotting TEMP less than equal 150 ℉
@@ -75,10 +77,28 @@ stations_789_nov %>% group_by(STN) %>% mutate(TEMP = impute.median(TEMP))
 stations_789_nov$TEMP%>%table()%>%plot()
 ```
 
-```{r PRCP}
+```{r PRCP(Not Needed)}
 stations_789_nov$PRCP<-ifelse(stations_789_nov$PRCP=="99.99",NA,stations_789_nov$PRCP)
 PRCP_split<-str_match(stations_789_nov$PRCP,"([0-9.]*)([A-I]*)")
 stations_789_nov$PRCP.Value<-as.double(PRCP_split[,2])
 stations_789_nov$PRCP.Flag<-PRCP_split[,3]
 density(stations_789_nov$PRCP.Value,na.rm = TRUE) %>% plot()
+```
+
+```{r WBAN(NOT NEEDED)}
+#Remove WBAN as doesn;t provide any information on the weather data
+stations_789_nov$WBAN<- NULL
+```
+
+# Taking Daily average of TEMP,DEWP,STP,WDSP
+```{r}
+stations_789_nov %>% group_by(STN,YEAR,MONTH_DAY) %>%
+  mutate(
+      TEMP=mean(TEMP,na.rm = TRUE),
+      DEWP=mean(DEWP,na.rm = TRUE),
+      STP=mean(STP,na.rm = TRUE),
+      WDSP=mean(WDSP,na.rm = TRUE)) %>%
+      select(STN,YEAR,MONTH_DAY,TEMP,DEWP,STP,WDSP)
+
+#kmeans()
 ```
