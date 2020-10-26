@@ -25,7 +25,7 @@ library(ggmap)
 
 # 1 Importing Data and merging into single data frame
 ```{r Import Data and merging}
-stations_location = read_csv("../data/stations.csv")
+stations_location <- read_csv("../data/stations.csv")
 
 columns_names <- c("STN","WBAN","YEARMODA_HR","TEMP","DEWP","DEWP.Count",  "SLP","SLP.Count"  , "STP","STP.Count", "VISIB","VISIB.Count","WDSP","WDSP.Count", "MXSPD",  "GUST", "PRCP"  ,"SNDP" , "FRSHTT")
 fileNames_all <- c("./data/datasets_all/hourly_2006.g","./data/datasets_all/hourly_2007.g","./data/datasets_all/hourly_2008.g","./data/datasets_all/hourly_2009.g","./data/datasets_all/hourly_2010_mod.g")
@@ -51,7 +51,7 @@ stations_all %>% mutate(YEAR = year(ymd_h(YEARMODA_HR)),MONTH= month(ymd_h(YEARM
 stations_all %>% filter(MONTH==11 & YEAR>2006 & YEAR<2010 ) -> stations_789_nov
 summary(stations_789_nov)
 #optional (for mem optimization)
-rm(stations_all)
+rm(stations_all,fileData)
 gc()
 ```
 
@@ -120,13 +120,63 @@ stations_location %>% select(StationNumber,Lat,Lon) %>% group_by(StationNumber) 
             Lon=mean(Lon,na.rm = TRUE)) %>% unique() ->stations_location
 #merge df for stn loc and stn processed
 merge(stn_789_nov_avged,stations_location,by.x="STN",by.y = "StationNumber",all.x = TRUE) -> stn_789_nov_avged_loc
+rm(stn_789_nov_avged,stations_789_nov,stations_location)
+gc()
 ```
 
-#Clustering year 2007 k=2
+#Clustering year 2007 k=2 to 8 using Euclidean metric
 ```{r}
+stn_789_nov_avged_loc %>% filter(YEAR==2007) -> stn_7_nov_avged_loc
+maxk<-12
 set.seed(110)
-kmn_model<-stn_789_nov_avged_loc %>% filter(YEAR==2007) %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% clara(x=.,k = 2)
-ggplot(stn_789_nov_avged_loc %>% filter(YEAR==2007) %>% select(Lon,Lat) %>% mutate(clustAllocated=kmn_model$cluster) , aes(Lon, Lat,colour=clustAllocated)) +
-  geom_point(size = .25, show.legend = TRUE) +
+mediods_7<-sample(1:count(stn_7_nov_avged_loc)$n,maxk)
+kmn_model<-stn_7_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = 2,stand = TRUE,metric = "euclidean")
+ggplot(stn_789_nov_avged_loc %>% filter(YEAR==2007) %>% select(Lon,Lat) %>% mutate(clustAllocated=as.factor(kmn_model$cluster)) , aes(Lon, Lat,colour=clustAllocated)) +
+  geom_point(size = 1, show.legend = TRUE) +
   coord_quickmap()
+k<-2
+resultMatrix <- data.frame(
+Metric=factor(),
+K=numeric(),
+SSE=numeric(),
+YEAR=numeric()
+)
+while(k <= maxk){
+  kmn_model<-stn_7_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "euclidean",medoids = mediods_7[1:k])
+  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=kmn_model$objective["swap"],YEAR=2007) -> resultMatrix
+  k<-k+1
+}
+```
+
+#Clustering year 2008 k=2 to 8 using Euclidean metric
+```{r}
+stn_789_nov_avged_loc %>% filter(YEAR==2008) -> stn_8_nov_avged_loc
+set.seed(110)
+mediods_8<-sample(1:count(stn_8_nov_avged_loc)$n,maxk)
+k<-2
+while(k <= maxk){
+  kmn_model<-stn_8_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "euclidean",medoids = mediods_8[1:k])
+  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=kmn_model$objective["swap"],YEAR=2008) -> resultMatrix
+  k<-k+1
+}
+```
+
+#Clustering year 2009 k=2 to 8 using Euclidean metric
+```{r}
+stn_789_nov_avged_loc %>% filter(YEAR==2009) -> stn_9_nov_avged_loc
+set.seed(110)
+mediods_9<-sample(1:count(stn_9_nov_avged_loc)$n,maxk)
+k<-2
+while(k <= maxk){
+  kmn_model<-stn_9_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "euclidean",medoids = mediods_9[1:k])
+  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=kmn_model$objective["swap"],YEAR=2009) -> resultMatrix
+  k<-k+1
+}
+```
+
+# Ploting graph for SSE and K for each year
+```{r}
+resultMatrix %>% filter(YEAR==2007) %>% select(K,SSE) %>% plot(type = "b")
+resultMatrix %>% filter(YEAR==2008) %>% select(K,SSE) %>% plot(type = "b")
+resultMatrix %>% filter(YEAR==2009) %>% select(K,SSE) %>% plot(type = "b")
 ```
