@@ -250,7 +250,7 @@ while(k <= maxk){
   resultMatrix_randomSeed %>% add_row(Metric="euclidean",K=k,SSE=sum(kmn_model$within),YEAR=2009) -> resultMatrix_randomSeed
   set.seed(1234)#random seed
   kmn_model<-stn_9_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "pearson")
-  resultMatrix_randomSeed %>% add_row(Metric="euclidean",K=k,SSE=sum(kmn_model$within),YEAR=2009) -> resultMatrix_randomSeed
+  resultMatrix_randomSeed %>% add_row(Metric="pearson",K=k,SSE=sum(kmn_model$within),YEAR=2009) -> resultMatrix_randomSeed
   k<-k+1
 }
 ```
