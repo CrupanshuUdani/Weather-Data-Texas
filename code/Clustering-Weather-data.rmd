@@ -250,7 +250,7 @@ while(k <= maxk){
   resultMatrix_randomSeed %>% add_row(Metric="euclidean",K=k,SSE=sum(kmn_model$within),YEAR=2009) -> resultMatrix_randomSeed
   set.seed(1234)#random seed
   kmn_model<-stn_9_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "pearson")
-  resultMatrix_randomSeed %>% add_row(Metric="euclidean",K=k,SSE=sum(kmn_model$within),YEAR=2009) -> resultMatrix_randomSeed
+  resultMatrix_randomSeed %>% add_row(Metric="pearson",K=k,SSE=sum(kmn_model$within),YEAR=2009) -> resultMatrix_randomSeed
   k<-k+1
 }
 ```
@@ -261,6 +261,17 @@ resultMatrix_randomSeed %>% filter(YEAR==2007,Metric=="euclidean") %>% select(K,
 resultMatrix_randomSeed %>% filter(YEAR==2008,Metric=="euclidean") %>% select(K,SSE) %>% plot(type = "b")
 resultMatrix_randomSeed %>% filter(YEAR==2009,Metric=="euclidean") %>% select(K,SSE) %>% plot(type = "b")
 ```
-#euclid 7,7,5
-#pearson
-###Based on the data above comparing original seed result with the new seed it's clear for all year the SSE has improved(value decreased) slightly with metric euclidean denoting the new center was slightly better while for pearson metric it has not improved much for all the year except 2009 (out of 2007-9)
+
+# Ploting graph for SSE and K for each year for Pearson distance metric
+```{r}
+resultMatrix_randomSeed %>% filter(YEAR==2007,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
+resultMatrix_randomSeed %>% filter(YEAR==2008,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
+resultMatrix_randomSeed %>% filter(YEAR==2009,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
+```
+
+###Optimal k year wise(2007,2008,2009):
+###euclid 7,7,5
+###pearson 4,7,6
+
+###Comparing original seed result with the new seed it's clear for all year the SSE has improved(value decreased) slightly with metric euclidean denoting the new center was slightly better while for pearson metric it has not improved much for all the year except 2009 (out of 2007-9)
+
