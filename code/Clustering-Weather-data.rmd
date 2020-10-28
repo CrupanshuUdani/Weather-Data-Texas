@@ -183,7 +183,7 @@ while(k <= maxk){
 }
 ```
 
-#Clustering year 2008 k=2 to 8 using Manhattan metric
+#Clustering year 2008 k=2 to 8 using Pearson metric
 ```{r}
 k<-2
 while(k <= maxk){
@@ -194,7 +194,7 @@ while(k <= maxk){
 }
 ```
 
-#Clustering year 2009 k=2 to 8 using Manhattan metric
+#Clustering year 2009 k=2 to 8 using Pearson metric
 ```{r}
 k<-2
 while(k <= maxk){
@@ -205,7 +205,7 @@ while(k <= maxk){
 }
 ```
 
-# Ploting graph for SSE and K for each year
+# Ploting graph for SSE and K for each year for Pearson
 ```{r}
 resultMatrix %>% filter(YEAR==2007,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
 resultMatrix %>% filter(YEAR==2008,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
