@@ -15,7 +15,7 @@ library(readr)
 #library(caret)
 library(lubridate) # Used for handling date
 library(stringr) # Used for String manipulation for feature extractions
-library(cluster) # Used for clustering
+library(amap) # Used for k means clustering
 library(ggmap)
 ```
 
@@ -121,11 +121,9 @@ gc()
 
 #Clustering year 2007 k=2 to 8 using Euclidean metric
 ```{r}
-stn_789_nov_avged_loc %>% filter(YEAR==2007) -> stn_7_nov_avged_loc
+stn_789_nov_avged_loc %>% filter(YEAR==2007) %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) -> stn_7_nov_avged_loc
 maxk<-12
-set.seed(110)
-mediods_7<-sample(1:count(stn_7_nov_avged_loc)$n,maxk)
-kmn_model<-stn_7_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = 2,stand = TRUE,metric = "euclidean")
+kmn_model<-stn_7_nov_avged_loc %>% Kmeans(x=.,centers = 2,nstart = 2,iter.max = 100,method = "euclidean")
 ggplot(stn_789_nov_avged_loc %>% filter(YEAR==2007) %>% select(Lon,Lat) %>% mutate(clustAllocated=as.factor(kmn_model$cluster)) , aes(Lon, Lat,colour=clustAllocated)) +
   geom_point(size = 1, show.legend = TRUE) +
   coord_quickmap()
@@ -137,97 +135,79 @@ SSE=numeric(),
 YEAR=numeric()
 )
 while(k <= maxk){
-  kmn_model<-stn_7_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "euclidean",medoids = mediods_7[1:k])
-  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=kmn_model$objective["swap"],YEAR=2007) -> resultMatrix
+  set.seed(110)
+  kmn_model<- stn_7_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "euclidean")
+  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=sum(kmn_model$within),YEAR=2007) -> resultMatrix
   k<-k+1
 }
 ```
 
 #Clustering year 2008 k=2 to 8 using Euclidean metric
 ```{r}
-stn_789_nov_avged_loc %>% filter(YEAR==2008) -> stn_8_nov_avged_loc
-set.seed(110)
-mediods_8<-sample(1:count(stn_8_nov_avged_loc)$n,maxk)
+stn_789_nov_avged_loc %>% filter(YEAR==2008) %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) -> stn_8_nov_avged_loc
 k<-2
 while(k <= maxk){
-  kmn_model<-stn_8_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "euclidean",medoids = mediods_8[1:k])
-  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=kmn_model$objective["swap"],YEAR=2008) -> resultMatrix
+  set.seed(110)
+  kmn_model<-stn_8_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "euclidean")
+  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=sum(kmn_model$within),YEAR=2008) -> resultMatrix
   k<-k+1
 }
 ```
 
 #Clustering year 2009 k=2 to 8 using Euclidean metric
 ```{r}
-stn_789_nov_avged_loc %>% filter(YEAR==2009) -> stn_9_nov_avged_loc
-set.seed(110)
-mediods_9<-sample(1:count(stn_9_nov_avged_loc)$n,maxk)
+stn_789_nov_avged_loc %>% filter(YEAR==2009) %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) -> stn_9_nov_avged_loc
 k<-2
 while(k <= maxk){
-  kmn_model<-stn_9_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "euclidean",medoids = mediods_9[1:k])
-  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=kmn_model$objective["swap"],YEAR=2009) -> resultMatrix
+  set.seed(110)
+  kmn_model<-stn_9_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "euclidean")
+  resultMatrix %>% add_row(Metric="euclidean",K=k,SSE=sum(kmn_model$within),YEAR=2009) -> resultMatrix
   k<-k+1
 }
 ```
 
-# Ploting graph for SSE and K for each year
+# Ploting graph for SSE and K for each year for Euclidean distance metric
 ```{r}
 resultMatrix %>% filter(YEAR==2007) %>% select(K,SSE) %>% plot(type = "b")
 resultMatrix %>% filter(YEAR==2008) %>% select(K,SSE) %>% plot(type = "b")
 resultMatrix %>% filter(YEAR==2009) %>% select(K,SSE) %>% plot(type = "b")
 ```
-#Clustering year 2007 k=2 to 8 using Manhattan metric
+#Clustering year 2007 k=2 to 8 using Pearson metric
 ```{r}
-stn_789_nov_avged_loc %>% filter(YEAR==2007) -> stn_7_nov_avged_loc
-maxk<-12
-set.seed(110)
-mediods_7<-sample(1:count(stn_7_nov_avged_loc)$n,maxk)
-kmn_model<-stn_7_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = 2,stand = TRUE,metric = "manhattan")
-ggplot(stn_789_nov_avged_loc %>% filter(YEAR==2007) %>% select(Lon,Lat) %>% mutate(clustAllocated=as.factor(kmn_model$cluster)) , aes(Lon, Lat,colour=clustAllocated)) +
-  geom_point(size = 1, show.legend = TRUE) +
-  coord_quickmap()
 k<-2
-resultMatrix <- data.frame(
-Metric=factor(),
-K=numeric(),
-SSE=numeric(),
-YEAR=numeric()
-)
 while(k <= maxk){
-  kmn_model<-stn_7_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "manhattan",medoids = mediods_7[1:k])
-  resultMatrix %>% add_row(Metric="manhattan",K=k,SSE=kmn_model$objective["swap"],YEAR=2007) -> resultMatrix
+  set.seed(110)
+  kmn_model<-stn_7_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "pearson")
+  resultMatrix %>% add_row(Metric="pearson",K=k,SSE=sum(kmn_model$within),YEAR=2007) -> resultMatrix
   k<-k+1
 }
 ```
 
 #Clustering year 2008 k=2 to 8 using Manhattan metric
 ```{r}
-stn_789_nov_avged_loc %>% filter(YEAR==2008) -> stn_8_nov_avged_loc
-set.seed(110)
-mediods_8<-sample(1:count(stn_8_nov_avged_loc)$n,maxk)
 k<-2
 while(k <= maxk){
-  kmn_model<-stn_8_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "manhattan",medoids = mediods_8[1:k])
-  resultMatrix %>% add_row(Metric="manhattan",K=k,SSE=kmn_model$objective["swap"],YEAR=2008) -> resultMatrix
+  set.seed(110)
+  kmn_model<-stn_8_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "pearson")
+  resultMatrix %>% add_row(Metric="pearson",K=k,SSE=sum(kmn_model$within),YEAR=2008) -> resultMatrix
   k<-k+1
 }
 ```
 
 #Clustering year 2009 k=2 to 8 using Manhattan metric
 ```{r}
-stn_789_nov_avged_loc %>% filter(YEAR==2009) -> stn_9_nov_avged_loc
-set.seed(110)
-mediods_9<-sample(1:count(stn_9_nov_avged_loc)$n,maxk)
 k<-2
 while(k <= maxk){
-  kmn_model<-stn_9_nov_avged_loc %>% ungroup() %>% select(TEMP,DEWP,STP,WDSP) %>% pam(x=.,k = k,stand = TRUE,metric = "manhattan",medoids = mediods_9[1:k])
-  resultMatrix %>% add_row(Metric="manhattan",K=k,SSE=kmn_model$objective["swap"],YEAR=2009) -> resultMatrix
+  set.seed(110)
+  kmn_model<-stn_9_nov_avged_loc %>% Kmeans(x=.,centers = k,nstart = k,iter.max = 100,method = "pearson")
+  resultMatrix %>% add_row(Metric="pearson",K=k,SSE=sum(kmn_model$within),YEAR=2008) -> resultMatrix
   k<-k+1
 }
 ```
 
 # Ploting graph for SSE and K for each year
 ```{r}
-resultMatrix %>% filter(YEAR==2007) %>% select(K,SSE) %>% plot(type = "b")
-resultMatrix %>% filter(YEAR==2008) %>% select(K,SSE) %>% plot(type = "b")
-resultMatrix %>% filter(YEAR==2009) %>% select(K,SSE) %>% plot(type = "b")
+resultMatrix %>% filter(YEAR==2007,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
+resultMatrix %>% filter(YEAR==2008,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
+resultMatrix %>% filter(YEAR==2009,Metric=="pearson") %>% select(K,SSE) %>% plot(type = "b")
 ```
