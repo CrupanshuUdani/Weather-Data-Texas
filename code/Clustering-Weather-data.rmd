@@ -275,3 +275,82 @@ resultMatrix_randomSeed %>% filter(YEAR==2009,Metric=="pearson") %>% select(K,SS
 
 ###Comparing original seed result with the new seed it's clear for all year the SSE has improved(value decreased) slightly with metric euclidean denoting the new center was slightly better while for pearson metric it has not improved much for all the year except 2009 (out of 2007-9)
 
+#Jaccard Similarity
+```{r}
+# FOR 2007 different metric checking jaccard values
+set.seed(110)
+kmn_model_e1<-stn_7_nov_avged_loc %>% Kmeans(x=.,centers = 7,nstart = 7,iter.max = 100,method = "euclidean")
+set.seed(110)
+kmn_model_p1<-stn_7_nov_avged_loc %>% Kmeans(x=.,centers = 7,nstart = 7,iter.max = 100,method = "pearson")
+i<-1
+min_count_vals = 0
+while(i <= length(kmn_model_e1$cluster)){
+  if(kmn_model_e1$cluster[i]==kmn_model_p1$cluster[i])
+          min_count_vals = min_count_vals + 1
+  i <- i + 1
+}
+jaccAnaly=min_count_vals/length(kmn_model_e1$cluster)
+print("jaccquard of 2007 with euclidean and pearson :")
+print(jaccAnaly)
+# FOR 2007,2008 euclidean metric checking jaccard values
+set.seed(110)
+kmn_model_e2<-stn_8_nov_avged_loc %>% Kmeans(x=.,centers = 7,nstart = 7,iter.max = 100,method = "euclidean")
+set.seed(110)
+kmn_model_e3<-stn_9_nov_avged_loc %>% Kmeans(x=.,centers = 7,nstart = 7,iter.max = 100,method = "euclidean")
+set.seed(110)
+kmn_model_p2<-stn_8_nov_avged_loc %>% Kmeans(x=.,centers = 7,nstart = 7,iter.max = 100,method = "pearson")
+set.seed(110)
+kmn_model_p3<-stn_9_nov_avged_loc %>% Kmeans(x=.,centers = 7,nstart = 7,iter.max = 100,method = "pearson")
+jaccMatE1 <- sort(kmn_model_e1$size)/sum(kmn_model_e1$size)
+jaccMatE2 <- sort(kmn_model_e2$size)/sum(kmn_model_e2$size)
+jaccMatE3 <- sort(kmn_model_e3$size)/sum(kmn_model_e3$size)
+jaccMatP1 <- sort(kmn_model_p1$size)/sum(kmn_model_p1$size)
+jaccMatP2 <- sort(kmn_model_p2$size)/sum(kmn_model_p2$size)
+jaccMatP3 <- sort(kmn_model_p3$size)/sum(kmn_model_p3$size)
+i<-1
+min_count_vals = 0
+max_count_vals = 0
+while(i <= 7){
+  min_count_vals = min_count_vals + min(jaccMatE1[i],jaccMatE2[i])
+  max_count_vals = max_count_vals + max(jaccMatE1[i],jaccMatE2[i])
+  i <- i + 1
+}
+jaccAnaly=min_count_vals/max_count_vals
+print("jaccquard of 2007,2008 with euclidean metric  :")
+print(jaccAnaly)
+# FOr 2007,2008,2009
+i<-1
+min_count_vals = 0
+max_count_vals = 0
+while(i <= 7){
+  min_count_vals = min_count_vals + min(jaccMatE1[i],jaccMatE2[i],jaccMatE3[i])
+  max_count_vals = max_count_vals + max(jaccMatE1[i],jaccMatE2[i],jaccMatE3[i])
+  i <- i + 1
+}
+jaccAnaly=min_count_vals/max_count_vals
+print("jaccquard of 2007,2008,2009 with euclidean metric  :")
+print(jaccAnaly)
+i<-1
+min_count_vals = 0
+max_count_vals = 0
+while(i <= 7){
+  min_count_vals = min_count_vals + min(jaccMatP1[i],jaccMatP2[i])
+  max_count_vals = max_count_vals + max(jaccMatP1[i],jaccMatP2[i])
+  i <- i + 1
+}
+jaccAnaly=min_count_vals/max_count_vals
+print("jaccquard of 2007,2008 with pearson metric  :")
+print(jaccAnaly)
+# FOr 2007,2008,2009 pearson
+i<-1
+min_count_vals = 0
+max_count_vals = 0
+while(i <= 7){
+  min_count_vals = min_count_vals + min(jaccMatP1[i],jaccMatP2[i],jaccMatP3[i])
+  max_count_vals = max_count_vals + max(jaccMatP1[i],jaccMatP2[i],jaccMatP3[i])
+  i <- i + 1
+}
+jaccAnaly=min_count_vals/max_count_vals
+print("jaccquard of 2007,2008,2009 with pearson metric  :")
+print(jaccAnaly)
+```
